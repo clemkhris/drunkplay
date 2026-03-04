@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faDice, faRotate, faTrash, faStar, faVolumeHigh } from "@fortawesome/free-solid-svg-icons";
+import { useRouter } from 'next/navigation';
 
 interface Game {
   id: number;
@@ -34,6 +35,7 @@ export default function Home() {
   const [showCatModal, setShowCatModal] = useState(false);
   const [currentCat, setCurrentCat] = useState<1 | 2>(1);
   const [catSpeech, setCatSpeech] = useState("这个游戏的核心在于第五轮使用回忆法，最容易赢哦～");
+  const router = useRouter();
 
   const filteredGames = games.filter((g) => {
     const sceneMatch = currentSceneFilter === "全部" || g.scene === currentSceneFilter;
@@ -104,12 +106,12 @@ export default function Home() {
               全部游戏
             </button>
             <a href="#" className="hover:text-[var(--neon-cyan)] transition-colors">资讯</a>
-            <button
-              onClick={() => setShowLogin(true)}
-              className="px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 rounded-3xl text-sm font-medium transition-all flex items-center gap-2"
-            >
-              <i className="fa-solid fa-user"></i> 登录 / 注册
-            </button>
+		<button
+		  onClick={() => router.push('/login')}
+		  className="px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 rounded-3xl text-sm font-medium transition-all flex items-center gap-2"
+		>
+		  <i className="fa-solid fa-user"></i> 登录 / 注册
+		</button>
           </div>
         </div>
       </nav>
@@ -355,44 +357,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      {/* Login Modal */}
-      {showLogin && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[9999] flex items-center justify-center"
-          onClick={() => setShowLogin(false)}
-        >
-          <div
-            className="bg-[#0F0F0F] border border-[var(--neon-purple)]/50 rounded-3xl max-w-md w-full mx-4 p-10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-3xl font-bold mb-8 text-center neon-text-purple">欢迎来到 DrunkPlay</h3>
-
-            <input
-              type="email"
-              placeholder="邮箱"
-              className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-4 outline-none focus:border-[var(--neon-cyan)]"
-            />
-
-            <input
-              type="password"
-              placeholder="密码"
-              className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-8 outline-none focus:border-[var(--neon-cyan)]"
-            />
-
-            <button
-              onClick={fakeLogin}
-              className="w-full py-5 bg-gradient-to-r from-[var(--neon-purple)] to-[var(--neon-cyan)] rounded-2xl text-xl font-medium"
-            >
-              立即进入酒局
-            </button>
-
-            <div className="text-center text-xs text-gray-500 mt-6">
-              注册即代表年满18岁并同意用户守则
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Cat Modal */}
       {showCatModal && (
