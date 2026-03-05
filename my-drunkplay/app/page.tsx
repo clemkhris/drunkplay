@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faDice, faRotate, faTrash, faStar, faVolumeHigh } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
 
 interface Game {
   id: number;
@@ -35,8 +36,23 @@ export default function Home() {
   const [showCatModal, setShowCatModal] = useState(false);
   const [currentCat, setCurrentCat] = useState<1 | 2>(1);
   const [catSpeech, setCatSpeech] = useState("这个游戏的核心在于第五轮使用回忆法，最容易赢哦～");
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
+useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.refresh();
+  };
+  
   const filteredGames = games.filter((g) => {
     const sceneMatch = currentSceneFilter === "全部" || g.scene === currentSceneFilter;
     const dimMatch = currentDimensionFilters.length === 0 || g.dimensions.some((d) => currentDimensionFilters.includes(d));
@@ -91,31 +107,47 @@ export default function Home() {
   return (
     <div className="min-h-screen relative">
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-[var(--neon-purple)]/30">
+<nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-[#9D00FF]/30">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[var(--neon-purple)] to-[var(--neon-cyan)] rounded-2xl flex items-center justify-center text-3xl shadow-[0_0_30px_var(--neon-purple)]">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#9D00FF] to-[#00F0FF] rounded-2xl flex items-center justify-center text-3xl shadow-[0_0_30px_#9D00FF]">
               🃏
             </div>
-            <span className="text-3xl font-bold tracking-tighter neon-text-purple [font-family:var(--font-orbitron)]">DrunkPlay</span>
+            <span className="logo-font text-3xl font-bold tracking-tighter neon-text-purple">DrunkPlay</span>
           </div>
-
           <div className="flex items-center gap-8 text-sm font-medium">
-            <a href="#" className="hover:text-[var(--neon-cyan)] transition-colors">首页</a>
-            <button onClick={() => setCurrentSceneFilter("全部")} className="hover:text-[var(--neon-cyan)] transition-colors">
+            <a href="#" className="hover:text-[#00F0FF] transition-colors">首页</a>
+            <button onClick={() => setCurrentSceneFilter("全部")} className="hover:text-[#00F0FF] transition-colors">
               全部游戏
             </button>
-            <a href="#" className="hover:text-[var(--neon-cyan)] transition-colors">资讯</a>
-		<button
-		  onClick={() => router.push('/login')}
-		  className="px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 rounded-3xl text-sm font-medium transition-all flex items-center gap-2"
-		>
-		  <i className="fa-solid fa-user"></i> 登录 / 注册
-		</button>
+            <a href="#" className="hover:text-[#00F0FF] transition-colors">资讯</a>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="text-[#00F0FF] text-sm">{user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="px-5 py-2 bg-white/10 hover:bg-red-500/20 border border-white/30 rounded-3xl text-sm transition-all"
+                >
+                  退出
+                </button>
+                <a
+                  href="/publish"
+                  className="px-6 py-2 bg-gradient-to-r from-[#9D00FF] to-[#00F0FF] rounded-3xl text-sm font-medium"
+                >
+                  发布游戏
+                </a>
+              </div>
+            ) : (
+              <button
+                onClick={() => router.push('/login')}
+                className="px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 rounded-3xl text-sm font-medium transition-all flex items-center gap-2"
+              >
+                <i className="fa-solid fa-user"></i> 登录 / 注册
+              </button>
+            )}
           </div>
         </div>
       </nav>
-
       {/* HERO */}
       <header className="scanline min-h-screen pt-20 bg-[radial-gradient(at_center,#1a0033_0%,#0A0A0A_70%)] flex items-center relative">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
