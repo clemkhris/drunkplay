@@ -123,7 +123,9 @@ useEffect(() => {
             <a href="#" className="hover:text-[#00F0FF] transition-colors">资讯</a>
             {user ? (
               <div className="flex items-center gap-4">
-                <span className="text-[#00F0FF] text-sm">{user.email}</span>
+                <span className="text-[#00F0FF] text-sm">
+                  {user.user_metadata.username || user.email}
+                </span>
                 <button
                   onClick={handleLogout}
                   className="px-5 py-2 bg-white/10 hover:bg-red-500/20 border border-white/30 rounded-3xl text-sm transition-all"

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');  // New field for username
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -15,14 +16,22 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const { error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username: username  // Save username in user metadata
+        }
+      }
+    });
 
     if (signUpError) {
       setError(signUpError.message);
       console.error("SignUp Error:", signUpError);
     } else {
       alert("✅ Sign up successful! You can now login.");
-      router.push('/');   // go to homepage
+      router.push('/');
     }
     setLoading(false);
   };
@@ -46,6 +55,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-black p-6">
       <div className="bg-[#0F0F0F] p-10 rounded-3xl border border-[#9D00FF]/50 max-w-md w-full">
         <h1 className="text-4xl font-bold neon-text-purple text-center mb-8">DrunkPlay</h1>
+
+        <input
+          type="text"
+          placeholder="Username (Nickname)"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-4"
+        />
 
         <input
           type="email"
@@ -84,3 +101,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
