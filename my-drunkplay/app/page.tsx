@@ -16,7 +16,7 @@ interface Game {
   desc: string;
 }
 
-const gamesData: Game[] = [
+const initialGames: Game[] = [
   { id: 1, title: "霓虹国王游戏", scene: "酒吧", dimensions: ["社会交往", "运气"], score: 4.9, image: "🔥", desc: "经典升级版，输了喝一杯" },
   { id: 2, title: "蒸汽波真心话", scene: "KTV", dimensions: ["情感表达"], score: 4.8, image: "🎤", desc: "大冒险+真心话结合" },
   { id: 3, title: "猫咪动作接龙", scene: "家庭", dimensions: ["动作反应"], score: 4.7, image: "🐾", desc: "边跳边喝超有趣" },
@@ -24,12 +24,11 @@ const gamesData: Game[] = [
   { id: 5, title: "户外啤酒接力", scene: "户外", dimensions: ["社会交往", "动作反应"], score: 4.5, image: "🏞️", desc: "夏夜必玩" },
   { id: 6, title: "餐厅猜酒令", scene: "餐厅", dimensions: ["认知推理"], score: 4.8, image: "🍷", desc: "边吃边猜" },
 ];
-
 const scenes = ["全部", "酒吧", "KTV", "家庭", "户外", "餐厅", "轰趴"];
 const dimensionsList = ["认知推理", "情感表达", "动作反应", "运气", "社会交往"];
 
 export default function Home() {
-  const [games] = useState<Game[]>(gamesData);
+  const [games, setGames] = useState<Game[]>(initialGames);
   const [currentSceneFilter, setCurrentSceneFilter] = useState("全部");
   const [currentDimensionFilters, setCurrentDimensionFilters] = useState<string[]>([]);
   const [showLogin, setShowLogin] = useState(false);
@@ -38,6 +37,15 @@ export default function Home() {
   const [catSpeech, setCatSpeech] = useState("这个游戏的核心在于第五轮使用回忆法，最容易赢哦～");
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const [loadedGames, setLoadedGames] = useState<Game[]>(initialGames);
+
+  useEffect(() => {
+  const fetchGames = async () => {
+    const { data } = await supabase.from('games').select('*').eq('status', 'approved'); // 只显示审核通过的
+    if (data) setGames(data);
+  };
+  fetchGames();
+}, []);
 
 useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -156,7 +164,7 @@ useEffect(() => {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 bg-white/10 px-6 py-2 rounded-3xl text-sm border border-[var(--neon-cyan)]/30">
               <div className="w-2 h-2 bg-[var(--neon-cyan)] rounded-full animate-pulse"></div>
-              2025 最新版 · 仅限18+
+              2026 最新版 · 仅限18+
             </div>
 
             <h1 className="text-7xl lg:text-8xl font-bold leading-none tracking-tighter [font-family:var(--font-orbitron)]">
@@ -245,7 +253,7 @@ useEffect(() => {
             <div
               key={game.id}
               className="neon-card min-w-[280px] bg-[#111] border border-white/10 rounded-3xl overflow-hidden snap-center cursor-pointer"
-              onClick={() => alert(`进入游戏详情：${game.title}（后续替换为页面）`)}
+              onClick={() => alert(`${game.title}\n ${game.description}`)}
             >
               <div className="h-48 bg-gradient-to-br from-[var(--neon-purple)]/20 to-[var(--neon-cyan)]/20 flex items-center justify-center text-8xl">
                 {game.image}
