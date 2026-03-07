@@ -29,7 +29,7 @@ export default function PublishGame() {
     if (imageFile) {
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('image')  // Make sure this bucket exists in Supabase Storage
-        .upload(`${user.id}/${Date.now()}.jpg`, imageFile);
+        .upload(`${user.id}/${Date.now()}.png`, imageFile);
 
       if (uploadError) {
         setError(uploadError.message);
@@ -39,7 +39,7 @@ export default function PublishGame() {
       const { data } = supabase.storage.from('image').getPublicUrl(uploadData.path);
       imageUrl = data.publicUrl;
     }
-
+alert('Debug: Image URL = ' + imageUrl);
     const { error: insertError } = await supabase.from('games').insert({
       title,
       description,

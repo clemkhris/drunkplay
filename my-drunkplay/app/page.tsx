@@ -255,8 +255,16 @@ useEffect(() => {
               className="neon-card min-w-[280px] bg-[#111] border border-white/10 rounded-3xl overflow-hidden snap-center cursor-pointer"
               onClick={() => alert(`${game.title}\n ${game.description}`)}
             >
-              <div className="h-48 bg-gradient-to-br from-[var(--neon-purple)]/20 to-[var(--neon-cyan)]/20 flex items-center justify-center text-8xl">
-                {game.image}
+              <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl">
+                {game.image ? (
+                  <img
+                    src={game.image}
+                    alt={game.title}
+                    className="w-full h-full object-cover rounded-t-3xl"  // Adjust class for style (cover to fit)
+                  />
+                ) : (
+                  game.image  // Fallback to emoji if no URL
+                )}
               </div>
               <div className="p-6">
                 <div className="flex justify-between items-start">
@@ -345,9 +353,19 @@ useEffect(() => {
               className="neon-card bg-[#111] border border-white/10 rounded-3xl overflow-hidden cursor-pointer"
               onClick={() => alert(`🎉 进入《${game.title}》详情页`)}
             >
-              <div className="h-56 bg-gradient-to-br from-[var(--neon-purple)]/10 to-transparent flex items-center justify-center text-9xl">
-                {game.image}
+              
+              <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl">
+                {game.image ? (
+                  <img
+                    src={game.image}
+                    alt={game.title}
+                    className="w-full h-full object-cover rounded-t-3xl"  // Adjust class for style (cover to fit)
+                  />
+                ) : (
+                  game.image  // Fallback to emoji if no URL
+                )}
               </div>
+
               <div className="p-6">
                 <h3 className="text-2xl font-medium mb-1">{game.title}</h3>
                 <p className="text-xs text-gray-400">
