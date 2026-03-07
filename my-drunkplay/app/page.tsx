@@ -253,7 +253,7 @@ useEffect(() => {
             <div
               key={game.id}
               className="neon-card min-w-[280px] bg-[#111] border border-white/10 rounded-3xl overflow-hidden snap-center cursor-pointer"
-              onClick={() => alert(`${game.title}\n ${game.description}`)}
+              onClick={() => alert(`${game.title}\n ${game.desc}`)}
             >
               <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl">
                 {game.image ? (
