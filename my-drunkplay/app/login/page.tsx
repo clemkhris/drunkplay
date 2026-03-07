@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = 'force-dynamic';  // Makes this page dynamic (no prerender at build time)
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
