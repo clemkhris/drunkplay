@@ -13,16 +13,16 @@ interface Game {
   dimensions: string[];
   score: number;
   image: string;
-  desc: string;
+  description: string;
 }
 
 const initialGames: Game[] = [
-  { id: 1, title: "霓虹国王游戏", scene: "酒吧", dimensions: ["社会交往", "运气"], score: 4.9, image: "🔥", desc: "经典升级版，输了喝一杯" },
-  { id: 2, title: "蒸汽波真心话", scene: "KTV", dimensions: ["情感表达"], score: 4.8, image: "🎤", desc: "大冒险+真心话结合" },
-  { id: 3, title: "猫咪动作接龙", scene: "家庭", dimensions: ["动作反应"], score: 4.7, image: "🐾", desc: "边跳边喝超有趣" },
-  { id: 4, title: "扑克星座运势战", scene: "轰趴", dimensions: ["认知推理", "运气"], score: 4.6, image: "⭐", desc: "根据星座抽牌" },
-  { id: 5, title: "户外啤酒接力", scene: "户外", dimensions: ["社会交往", "动作反应"], score: 4.5, image: "🏞️", desc: "夏夜必玩" },
-  { id: 6, title: "餐厅猜酒令", scene: "餐厅", dimensions: ["认知推理"], score: 4.8, image: "🍷", desc: "边吃边猜" },
+  { id: 1, title: "霓虹国王游戏", scene: "酒吧", dimensions: ["社会交往", "运气"], score: 4.9, image: "🔥", description: "经典升级版，输了喝一杯" },
+  { id: 2, title: "蒸汽波真心话", scene: "KTV", dimensions: ["情感表达"], score: 4.8, image: "🎤", description: "大冒险+真心话结合" },
+  { id: 3, title: "猫咪动作接龙", scene: "家庭", dimensions: ["动作反应"], score: 4.7, image: "🐾", description: "边跳边喝超有趣" },
+  { id: 4, title: "扑克星座运势战", scene: "轰趴", dimensions: ["认知推理", "运气"], score: 4.6, image: "⭐", description: "根据星座抽牌" },
+  { id: 5, title: "户外啤酒接力", scene: "户外", dimensions: ["社会交往", "动作反应"], score: 4.5, image: "🏞️", description: "夏夜必玩" },
+  { id: 6, title: "餐厅猜酒令", scene: "餐厅", dimensions: ["认知推理"], score: 4.8, image: "🍷", description: "边吃边猜" },
 ];
 const scenes = ["全部", "酒吧", "KTV", "家庭", "户外", "餐厅", "轰趴"];
 const dimensionsList = ["认知推理", "情感表达", "动作反应", "运气", "社会交往"];
@@ -253,7 +253,7 @@ useEffect(() => {
             <div
               key={game.id}
               className="neon-card min-w-[280px] bg-[#111] border border-white/10 rounded-3xl overflow-hidden snap-center cursor-pointer"
-              onClick={() => alert(`${game.title}\n ${game.desc}`)}
+              onClick={() => alert(`${game.title}\n ${game.description}`)}
             >
               <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl">
                 {game.image ? (
@@ -375,7 +375,7 @@ useEffect(() => {
                   <div className="flex items-center gap-1 text-[var(--neon-cyan)]">
                     ★★★★☆ <span className="text-white ml-2 font-bold">{game.score}</span>
                   </div>
-                  <div className="text-xs px-4 py-1 bg-white/10 rounded-3xl">{game.desc}</div>
+                  <div className="text-xs px-4 py-1 bg-white/10 rounded-3xl">{game.description}</div>
                 </div>
               </div>
             </div>
