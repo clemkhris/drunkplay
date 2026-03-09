@@ -6,11 +6,16 @@ import { useRouter } from 'next/navigation';
 
 export default function PublishGame() {
   const [title, setTitle] = useState('');
+  const [duration, setDuration] = useState('');
+  const [setup, setSetUP] = useState('');
+  const [tools, setTools] = useState('');
   const [description, setDescription] = useState('');
+  const [winning_conditions, setWinning_conditons] = useState('');
   const [scene, setScene] = useState('');
   const [dimensions, setDimensions] = useState<string[]>([]);
   const [players, setPlayers] = useState('');
   const [loading, setLoading] = useState(false);
+  const [video, setVideo] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -42,12 +47,16 @@ export default function PublishGame() {
 alert('Debug: Image URL = ' + imageUrl);
     const { error: insertError } = await supabase.from('games').insert({
       title,
+      tools,
+      duration,
       description,
+      winning_conditions,
       scene,
       dimensions,
       players,
       created_by: user.id,
       status: 'pending',  // 待审核
+      video,
       image: imageUrl,
     });
 
@@ -79,11 +88,44 @@ alert('Debug: Image URL = ' + imageUrl);
           className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-4"
         />
 
+        <input
+          type="text"
+          placeholder="游戏道具"
+          value={tools}
+          onChange={(e) => setTools(e.target.value)}
+          className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-4"
+        />
+
+        <select
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-4"
+        >
+          <option value="">选择时长</option>
+          <option value="20 mins below">20分钟以内</option>
+          <option value="20~60 mins">20~60分钟</option>
+          <option value="over 60 mins">大于60分钟</option>
+          <option value="free">自由发挥</option>
+        </select>
 
         <textarea
-          placeholder="游戏描述/玩法说明"
+          placeholder="游戏刚开始摆放步骤"
+          value={setup}
+          onChange={(e) => setSetUP(e.target.value)}
+          className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-4 h-32"
+        />
+
+        <textarea
+          placeholder="游戏描述/游戏回合制描述"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-4 h-32"
+        />
+
+        <textarea
+          placeholder="输赢判定规则"
+          value={winning_conditions}
+          onChange={(e) => setWinning_conditons(e.target.value)}
           className="w-full bg-white/5 border border-white/20 rounded-2xl px-6 py-4 mb-4 h-32"
         />
 

@@ -9,11 +9,17 @@ import { supabase } from '@/lib/supabaseClient';
 interface Game {
   id: number;
   title: string;
+  duration: string;
+  setup: string;
+  tools: string;
+  description: string;
+  winning_conditions: string;
+  players: number;
+  video: string;
   scene: string;
   dimensions: string[];
   score: number;
   image: string;
-  description: string;
 }
 
 const initialGames: Game[] = [
@@ -37,7 +43,6 @@ export default function Home() {
   const [catSpeech, setCatSpeech] = useState("这个游戏的核心在于第五轮使用回忆法，最容易赢哦～");
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
-  const [loadedGames, setLoadedGames] = useState<Game[]>(initialGames);
 
   useEffect(() => {
   const fetchGames = async () => {
@@ -253,7 +258,12 @@ useEffect(() => {
             <div
               key={game.id}
               className="neon-card min-w-[280px] bg-[#111] border border-white/10 rounded-3xl overflow-hidden snap-center cursor-pointer"
-              onClick={() => alert(`${game.title}\n ${game.description}`)}
+              onClick={() => alert(`${game.title}\n
+            准备工具: ${game.tools}
+            前置条件: ${game.setup}
+            游戏描述: ${game.description}
+            输赢规则: ${game.winning_conditions}
+            游戏时长：${game.duration}`)}
             >
               <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl">
                 {game.image ? (
@@ -351,7 +361,12 @@ useEffect(() => {
             <div
               key={game.id}
               className="neon-card bg-[#111] border border-white/10 rounded-3xl overflow-hidden cursor-pointer"
-              onClick={() => alert(`🎉 进入《${game.title}》详情页`)}
+              onClick={() => alert(`🎉 进入 ${game.title}
+            准备工具: ${game.tools}
+            前置条件: ${game.setup}
+            游戏描述: ${game.description}
+            输赢规则: ${game.winning_conditions}
+            游戏时长：${game.duration}`)}
             >
               
               <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl">
@@ -375,7 +390,9 @@ useEffect(() => {
                   <div className="flex items-center gap-1 text-[var(--neon-cyan)]">
                     ★★★★☆ <span className="text-white ml-2 font-bold">{game.score}</span>
                   </div>
-                  <div className="text-xs px-4 py-1 bg-white/10 rounded-3xl">{game.description}</div>
+                  <div className="text-xs px-4 py-1 bg-white/10 rounded-3xl">
+                    {game.players}人
+                  </div>
                 </div>
               </div>
             </div>
