@@ -1,5 +1,5 @@
 [build]
-  base = "my-drunkplay"          # ← matches the base dir above
+  base = ""          # ← matches the base dir above
   publish = ".next" # or just ".next" if base is set
   command = "npm run build"
 
