@@ -1,0 +1,7 @@
+[build]
+  base = ""          # ← matches the base dir above
+  publish = ".next" # or just ".next" if base is set
+  command = "npm run build"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"  # forces latest v5 adapter
