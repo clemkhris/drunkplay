@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faDice, faRotate, faTrash, faStar, faVolumeHigh } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import StarRating from '@/components/StarRating';   // ← adjust path if your folder is different
 
 interface Game {
   id: number;
@@ -381,9 +382,15 @@ useEffect(() => {
                   {game.scene} • {game.dimensions.join(" · ")}
                 </p>
                 <div className="mt-6 flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-[var(--neon-cyan)]">
-                    ★★★★☆ <span className="text-white ml-2 font-bold">{game.score}</span>
-                  </div>
+                    <StarRating 
+                      gameId={game.id} 
+                      initialRating={game.score || 0} 
+                      // userHasRated={...} we'll add later
+                      onRate={(newAvg) => {
+                        // Optional: optimistic update
+                        setGames(prev => prev.map(g => g.id === game.id ? { ...g, score: newAvg } : g));
+                      }}
+                    />
                   <div className="text-xs px-4 py-1 bg-white/10 rounded-3xl">
                     {game.players}人
                   </div>
