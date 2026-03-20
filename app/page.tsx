@@ -38,11 +38,22 @@ export default function Home() {
   const [catSpeech, setCatSpeech] = useState("这个游戏的核心在于第五轮使用回忆法，最容易赢哦～");
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const [gameCount, setGameCount] = useState(0);
 
   useEffect(() => {
   const fetchGames = async () => {
-    const { data } = await supabase.from('games').select('*').eq('status', 'approved'); // 只显示审核通过的
+    const { data, count, error } = await supabase
+      .from('games')
+      .select('*', { count: 'exact' })  // ← magic: get count without fetching all rows
+      .eq('status', 'approved');
+
+    if (error) {
+      console.error("Fetch games error:", error);
+      return;
+    }
+
     if (data) setGames(data);
+    if (count !== null) setGameCount(count);  // ← real number!
   };
   fetchGames();
 }, []);
@@ -198,7 +209,7 @@ useEffect(() => {
                 <span>4.8 平均评分</span>
               </div>
               <div className="h-px w-8 bg-white/30"></div>
-              <div>已收录 127 款酒局游戏</div>
+              <div>已收录 {gameCount} 款酒局游戏</div>
             </div>
           </div>
 
