@@ -126,26 +126,29 @@ const newAvg = avgData?.length
 
   return (
   <div className="flex items-center gap-1 cursor-pointer">
-    {[1, 2, 3, 4, 5].map((star) => (
-      <FontAwesomeIcon
-        key={star}
-        icon={faStar}
-        className={`text-2xl transition-all ${
-          star <= (hover || rating) ? 'text-[var(--neon-cyan)]' : 'text-gray-600'
-        } ${
-          hasVoted 
-            ? 'opacity-50 cursor-not-allowed text-yellow-400/70'
-            : 'hover:scale-125 hover:text-[var(--neon-cyan)]/80'
-        }`}
-        onMouseEnter={() => !hasVoted && setHover(star)}
-        onMouseLeave={() => setHover(0)}
-        onClick={() => !hasVoted && handleClick(star)}
-      />
-    ))}
-    <span className="ml-2 text-sm text-gray-400">
-      ({initialRating.toFixed(1)})
-      {hasVoted && userRating && ` · 你投了 ${userRating} 星`}
-    </span>
-  </div>
+  {[1, 2, 3, 4, 5].map((star) => (
+    <FontAwesomeIcon
+      key={star}
+      icon={faStar}
+      className={`text-2xl transition-all ${
+        // 星星永遠按平均分填滿（initialRating）
+        star <= Math.round(initialRating || 0)
+          ? 'text-[var(--neon-cyan)]'   // 平均分亮的 cyan 星
+          : 'text-gray-600'             // 空的灰星
+      } ${
+        hasVoted
+          ? 'opacity-70 cursor-not-allowed'  // 已投 → 整體變淡灰鎖住
+          : 'hover:scale-125 hover:text-[var(--neon-cyan)]/80'  // 未投 → hover 發光放大
+      }`}
+      onMouseEnter={() => !hasVoted && setHover(star)}
+      onMouseLeave={() => setHover(0)}
+      onClick={() => !hasVoted && handleClick(star)}
+    />
+  ))}
+  <span className="ml-2 text-sm text-gray-400">
+    ({initialRating.toFixed(1)} 平均)
+    {hasVoted && userRating && ` · 你投了 ${userRating} 星`}
+  </span>
+</div>
   );
 }

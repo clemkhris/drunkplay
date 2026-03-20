@@ -382,15 +382,18 @@ useEffect(() => {
                   {game.scene} • {game.dimensions.join(" · ")}
                 </p>
                 <div className="mt-6 flex items-center justify-between">
-                    <StarRating 
-                      gameId={game.id} 
-                      initialRating={game.score || 0} 
-                      // userHasRated={...} we'll add later
-                      onRate={(newAvg) => {
-                        // Optional: optimistic update
-                        setGames(prev => prev.map(g => g.id === game.id ? { ...g, score: newAvg } : g));
-                      }}
-                    />
+                  <StarRating
+                    gameId={game.id}
+                    initialRating={game.score || 0}
+                    onRate={(newAvg) => {
+                      // newAvg 已經是剛算好的平均分，直接塞進去
+                      setGames(prev => 
+                        prev.map(g => 
+                          g.id === game.id ? { ...g, score: Number(newAvg.toFixed(1)) } : g
+                        )
+                      );
+                    }}
+                  />
                   <div className="text-xs px-4 py-1 bg-white/10 rounded-3xl">
                     {game.players}人
                   </div>
