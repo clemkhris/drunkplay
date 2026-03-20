@@ -13,30 +13,68 @@ interface StarRatingProps {
   onRate?: (newAvg: number) => void; // callback to update UI
 }
 
-export default function StarRating({ gameId, initialRating = 0, userHasRated = false, onRate }: StarRatingProps) {
+export default function StarRating({ gameId, initialRating = 0, onRate }: StarRatingProps) {
   const [hover, setHover] = useState(0);
   const [rating, setRating] = useState(0); // temp for hover preview
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [userRating, setUserRating] = useState<number | null>(null); // what they voted (for display)
+  
+useEffect(() => {
+  // Part 1: 監聽登入狀態（這個沒問題，保持）
+  supabase.auth.getUser().then(({ data }) => {
+    setCurrentUser(data.user);
+  });
 
-  useEffect(() => {
-    // Get current logged-in user once when component mounts
-    supabase.auth.getUser().then(({ data }) => {
-      setCurrentUser(data.user);
-    });
+  const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+    setCurrentUser(session?.user || null);
+  });
 
-    // Optional: listen for login/logout changes (good for real-time feel)
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      setCurrentUser(session?.user || null);
-    });
+  return () => {
+    listener.subscription.unsubscribe();
+  };
+}, []);  // ← 只跑一次，登入狀態變化靠 listener
 
-    // Cleanup listener when component unmounts
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
+// Part 2: 單獨一個 effect 負責查「是否已投過票」
+useEffect(() => {
+  // 兩個條件缺一不可 → 才去查
+  if (!currentUser?.id || !gameId) return;
+
+  const checkIfRated = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('game_ratings')
+        .select('rating')
+        .eq('game_id', gameId)
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("查投票記錄失敗:", error);
+        return;
+      }
+
+      if (data) {
+        setHasVoted(true);
+        setUserRating(data.rating);
+        setRating(data.rating); // 顯示用戶自己投的星星
+        console.log(`已投過 ${data.rating} 星，鎖定星星～`);
+      } else {
+        console.log("還沒投過，開放投票！");
+      }
+    } catch (err) {
+      console.error("意外錯誤:", err);
+    }
+  };
+
+  checkIfRated();
+}, [currentUser?.id, gameId]);  // ← 依賴 currentUser.id 和 gameId 變化才重查
 
   const handleClick = async (value: number) => {
-    if (userHasRated) return alert("已经投过票啦～");
+    if (hasVoted) {                 // ← 改這裡
+      alert("一人一票哦～ 下輪再來High！🍻");
+      return;
+    }
 
     console.log("当前用户:", currentUser);  // ← 加这行，看是不是 null
 
@@ -77,28 +115,37 @@ const newAvg = avgData?.length
   : value;
 
 // 告诉父组件：分数变了！（父组件会负责更新 games state）
-onRate?.(newAvg);
+  onRate?.(newAvg);
 
-// 可选：本地先假装更新（视觉反馈快）
-setRating(value);  // 让当前星星保持你点的状态
-alert(`投了 ${value} 星！小一记住了～`);
+  setHasVoted(true);
+  setUserRating(value);
+  setRating(value);
+  onRate?.(newAvg);
+  alert(`投了 ${value} 星！小一记住了～`);
   };
 
   return (
-    <div className="flex items-center gap-1 cursor-pointer">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <FontAwesomeIcon
-          key={star}
-          icon={faStar}
-          className={`text-2xl transition-all ${
-            star <= (hover || rating) ? 'text-[var(--neon-cyan)]' : 'text-gray-600'
-          } ${userHasRated ? 'opacity-50 cursor-not-allowed' : 'hover:scale-125'}`}
-          onMouseEnter={() => !userHasRated && setHover(star)}
-          onMouseLeave={() => setHover(0)}
-          onClick={() => handleClick(star)}
-        />
-      ))}
-      <span className="ml-2 text-sm text-gray-400">({initialRating.toFixed(1)})</span>
-    </div>
+  <div className="flex items-center gap-1 cursor-pointer">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <FontAwesomeIcon
+        key={star}
+        icon={faStar}
+        className={`text-2xl transition-all ${
+          star <= (hover || rating) ? 'text-[var(--neon-cyan)]' : 'text-gray-600'
+        } ${
+          hasVoted 
+            ? 'opacity-50 cursor-not-allowed text-yellow-400/70'
+            : 'hover:scale-125 hover:text-[var(--neon-cyan)]/80'
+        }`}
+        onMouseEnter={() => !hasVoted && setHover(star)}
+        onMouseLeave={() => setHover(0)}
+        onClick={() => !hasVoted && handleClick(star)}
+      />
+    ))}
+    <span className="ml-2 text-sm text-gray-400">
+      ({initialRating.toFixed(1)})
+      {hasVoted && userRating && ` · 你投了 ${userRating} 星`}
+    </span>
+  </div>
   );
 }
