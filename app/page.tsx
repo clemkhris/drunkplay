@@ -54,6 +54,22 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const [gameCount, setGameCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const totalPages = Math.ceil(cocktails.length / itemsPerPage);
+  const currentCocktails = cocktails.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
 
   useEffect(() => {
   const fetchGames = async () => {
@@ -70,13 +86,19 @@ export default function Home() {
     if (data) setGames(data);
     if (count !== null) setGameCount(count);  // ← real number!
 
+    // Fetch Cocktails
     const { data: cocktailData, error: cocktailError } = await supabase
       .from('cocktails')
-      .select('*')
+      .select('*')  // ← magic: get count without fetching all rows
       .eq('status', 'approved');
 
-    if (cocktailError) console.error("Cocktails error:", cocktailError);
-    else setCocktails(cocktailData || []);
+    if (cocktailError) {
+      console.error("Cocktails fetch error:", cocktailError);
+    } else {
+      console.log("Loaded cocktails:", cocktailData?.length);  // ← Add this line to debug!
+      setCocktails(cocktailData || []);
+    }
+
   };
   
   fetchGames();
@@ -439,7 +461,7 @@ useEffect(() => {
         </div>
       </section>
 
-            {/* Cocktails Block - Under Games */}
+            {/* Cocktails Block with Real Pagination */}
       <section className="max-w-7xl mx-auto px-6 py-20 bg-gradient-to-b from-black to-[#1a0033]">
         <div className="flex items-end justify-between mb-10">
           <div>
@@ -452,25 +474,23 @@ useEffect(() => {
           
           <button
             onClick={() => {
-              if (cocktails.length === 0) {
-                alert("No cocktails loaded yet... go add some in Supabase first! 🍸");
-                return;
-              }
+              if (cocktails.length === 0) return alert("还没加载酒呢～");
               const rand = cocktails[Math.floor(Math.random() * cocktails.length)];
-              alert(`🍹 SHAKE RESULT: ${rand.name}!\n\nAlcohol: ${rand.main_alcohol}\nStrength: ${rand.strength}/10 🔥\nTaste: ${rand.taste}\n\nGo make this shit right now~`);
+              alert(`🍹 摇到了：${rand.name}！\n\nAlcohol: ${rand.main_alcohol}\nStrength: ${rand.strength}/10 🔥\nTaste: ${rand.taste}`);
             }}
-            className="px-8 py-4 bg-gradient-to-r from-[#FF00AA] to-[#00F0FF] rounded-3xl text-lg font-medium flex items-center gap-3 hover:scale-105 transition-all shadow-lg"
+            className="px-8 py-4 bg-gradient-to-r from-[#FF00AA] to-[#00F0FF] rounded-3xl text-lg font-medium flex items-center gap-3 hover:scale-105 transition-all"
           >
             <i className="fa-solid fa-dice"></i> Shake Random Drink
           </button>
         </div>
 
+        {/* Cocktail Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {cocktails.slice(0, 6).map((cocktail) => (
+          {currentCocktails.map((cocktail) => (
             <div
               key={cocktail.id}
               className="neon-card bg-[#111] border border-white/10 rounded-3xl overflow-hidden cursor-pointer group"
-              onClick={() => alert(`🍹 ${cocktail.name}\n\nMain Alcohol: ${cocktail.main_alcohol}\nStrength: ${cocktail.strength}/10\nTaste: ${cocktail.taste}\n\nMaterials:\n${cocktail.materials.join('\n')}\n\nHow to make:\n${cocktail.steps.join('\n')}${cocktail.tips ? `\n\nTips: ${cocktail.tips}` : ''}`)}
+              onClick={() => alert(`🍹 ${cocktail.name}\n\nMain: ${cocktail.main_alcohol}\nStrength: ${cocktail.strength}/10\nTaste: ${cocktail.taste}\n\nMaterials:\n${cocktail.materials.join('\n')}\n\nSteps:\n${cocktail.steps.join('\n')}`)}
             >
               <div className="h-56 bg-gradient-to-br from-[#FF00AA]/20 to-[#00F0FF]/20 relative overflow-hidden">
                 {cocktail.image ? (
@@ -480,12 +500,8 @@ useEffect(() => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-9xl opacity-70">
-                    🍸
-                  </div>
+                  <div className="w-full h-full flex items-center justify-center text-9xl opacity-70">🍸</div>
                 )}
-                
-                {/* Strength badge */}
                 <div className="absolute top-4 right-4 bg-black/90 px-4 py-1 rounded-2xl text-sm font-bold border border-[#FF00AA]/70">
                   {cocktail.strength}/10 🔥
                 </div>
@@ -496,31 +512,47 @@ useEffect(() => {
                 <p className="text-sm text-gray-400 mb-4">
                   {cocktail.main_alcohol} • {cocktail.category || "Classic"}
                 </p>
-                
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-300">
-                    {cocktail.taste}
-                  </div>
-                  <div className={`px-5 py-1 text-xs font-medium rounded-3xl ${
-                    cocktail.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-400' :
-                    cocktail.difficulty === 'Medium' ? 'bg-amber-500/20 text-amber-400' :
-                    'bg-rose-500/20 text-rose-400'
-                  }`}>
-                    {cocktail.difficulty || 'Easy'}
-                  </div>
-                </div>
+                <div className="text-sm text-gray-300 line-clamp-2">{cocktail.taste}</div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="text-center mt-14">
-          <button 
-            onClick={() => alert("Full cocktail menu coming soon... We’re still mixing it up 🍹")}
-            className="px-12 py-4 border-2 border-[var(--neon-pink)] hover:bg-[var(--neon-pink)]/10 rounded-3xl text-lg transition-all"
-          >
-            Browse All Cocktails →
-          </button>
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-6 mt-16">
+            <button
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
+              className={`px-8 py-4 rounded-3xl text-lg font-medium transition-all flex items-center gap-2 ${
+                currentPage === 1 
+                  ? "bg-white/10 text-gray-500 cursor-not-allowed" 
+                  : "bg-white/10 hover:bg-white/20 border border-white/30"
+              }`}
+            >
+              ← 上一页
+            </button>
+
+            <div className="text-xl font-medium text-gray-400">
+              {currentPage} / {totalPages}
+            </div>
+
+            <button
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+              className={`px-8 py-4 rounded-3xl text-lg font-medium transition-all flex items-center gap-2 ${
+                currentPage === totalPages 
+                  ? "bg-white/10 text-gray-500 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-[#9D00FF] to-[#FF00AA] hover:scale-105"
+              }`}
+            >
+              下一页 →
+            </button>
+          </div>
+        )}
+
+        <div className="text-center mt-8 text-gray-500 text-sm">
+          共 {cocktails.length} 款酒 · 每页显示 6 款
         </div>
       </section>
 
