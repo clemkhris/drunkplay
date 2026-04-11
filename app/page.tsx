@@ -56,6 +56,9 @@ export default function Home() {
   const [gameCount, setGameCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+    // Game Pagination
+  const [currentGamePage, setCurrentGamePage] = useState(1);
+  const gamesPerPage = 8;
 
   const totalPages = Math.ceil(cocktails.length / itemsPerPage);
   const currentCocktails = cocktails.slice(
@@ -69,6 +72,20 @@ export default function Home() {
 
   const goToPrevPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+    // Game Pagination Logic
+  const totalGamePages = Math.ceil(games.length / gamesPerPage);
+  const currentGames = games.slice(
+    (currentGamePage - 1) * gamesPerPage,
+    currentGamePage * gamesPerPage
+  );
+
+  const goToNextGamePage = () => {
+    if (currentGamePage < totalGamePages) setCurrentGamePage(currentGamePage + 1);
+  };
+
+  const goToPrevGamePage = () => {
+    if (currentGamePage > 1) setCurrentGamePage(currentGamePage - 1);
   };
 
   useEffect(() => {
@@ -391,25 +408,46 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Game List */}
+      {/* Game List with Random Button + Pagination */}
       <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex justify-between items-center mb-10">
-          <h2 className="text-4xl font-bold">
-            全部酒局游戏 <span className="text-[var(--neon-cyan)] text-3xl">{filteredGames.length}</span>
-          </h2>
-          <div
-            onClick={() => {
-              setCurrentSceneFilter("全部");
-              setCurrentDimensionFilters([]);
-            }}
-            className="text-sm cursor-pointer hover:text-[var(--neon-pink)] flex items-center gap-1"
-          >
-            <i className="fa-solid fa-trash"></i> 重置筛选
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
+          <div>
+            <h2 className="text-4xl font-bold">
+              全部酒局游戏 <span className="text-[var(--neon-cyan)] text-3xl">{games.length}</span>
+            </h2>
+            <p className="text-gray-400 mt-2">摇一摇，看今晚玩哪一款！</p>
+          </div>
+
+          <div className="flex gap-4">
+            {/* Random Game Button */}
+            <button
+              onClick={() => {
+                if (games.length === 0) return alert("还没加载游戏呢～");
+                const rand = games[Math.floor(Math.random() * games.length)];
+                alert(`🎲 摇到了：${rand.title}！\n\n场景：${rand.scene}\n类型：${rand.dimensions.join("、")}\n\n快去玩吧～`);
+              }}
+              className="px-8 py-4 bg-gradient-to-r from-[var(--neon-purple)] to-[var(--neon-cyan)] rounded-3xl text-lg font-medium flex items-center gap-3 hover:scale-105 transition-all shadow-lg"
+            >
+              <i className="fa-solid fa-dice"></i> 摇一摇随机游戏
+            </button>
+
+            {/* Reset Filter Button */}
+            <button
+              onClick={() => {
+                setCurrentSceneFilter("全部");
+                setCurrentDimensionFilters([]);
+                setCurrentGamePage(1);
+              }}
+              className="px-6 py-4 bg-white/10 hover:bg-white/20 border border-white/30 rounded-3xl text-lg font-medium flex items-center gap-2 transition-all"
+            >
+              <i className="fa-solid fa-trash"></i> 重置筛选
+            </button>
           </div>
         </div>
 
+        {/* Games Grid - 10 per page */}
         <div className="game-grid">
-          {filteredGames.map((game) => (
+          {currentGames.map((game) => (
             <div
               key={game.id}
               className="neon-card bg-[#111] border border-white/10 rounded-3xl overflow-hidden cursor-pointer"
@@ -420,16 +458,15 @@ useEffect(() => {
             输赢规则: ${game.winning_conditions}
             游戏时长：${game.duration}`)}
             >
-              
-              <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl">
+              <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl overflow-hidden">
                 {game.image ? (
                   <img
                     src={game.image}
                     alt={game.title}
-                    className="w-full h-full object-cover rounded-t-3xl"  // Adjust class for style (cover to fit)
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  game.image  // Fallback to emoji if no URL
+                  "🎲"
                 )}
               </div>
 
@@ -443,7 +480,6 @@ useEffect(() => {
                     gameId={game.id}
                     initialRating={game.score || 0}
                     onRate={(newAvg) => {
-                      // newAvg 已經是剛算好的平均分，直接塞進去
                       setGames(prev => 
                         prev.map(g => 
                           g.id === game.id ? { ...g, score: Number(newAvg.toFixed(1)) } : g
@@ -459,8 +495,44 @@ useEffect(() => {
             </div>
           ))}
         </div>
-      </section>
 
+        {/* Pagination */}
+        {totalGamePages > 1 && (
+          <div className="flex justify-center items-center gap-6 mt-16">
+            <button
+              onClick={goToPrevGamePage}
+              disabled={currentGamePage === 1}
+              className={`px-8 py-4 rounded-3xl text-lg font-medium transition-all flex items-center gap-2 ${
+                currentGamePage === 1 
+                  ? "bg-white/10 text-gray-500 cursor-not-allowed" 
+                  : "bg-white/10 hover:bg-white/20 border border-white/30"
+              }`}
+            >
+              ← 上一页
+            </button>
+
+            <div className="text-xl font-medium text-gray-400 px-6">
+              第 {currentGamePage} 页 / 共 {totalGamePages} 页
+            </div>
+
+            <button
+              onClick={goToNextGamePage}
+              disabled={currentGamePage === totalGamePages}
+              className={`px-8 py-4 rounded-3xl text-lg font-medium transition-all flex items-center gap-2 ${
+                currentGamePage === totalGamePages 
+                  ? "bg-white/10 text-gray-500 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-[#9D00FF] to-[#FF00AA] hover:scale-105"
+              }`}
+            >
+              下一页 →
+            </button>
+          </div>
+        )}
+
+        <div className="text-center mt-8 text-gray-500 text-sm">
+          共 {games.length} 款游戏 · 每页显示 10 款
+        </div>
+      </section>
             {/* Cocktails Block with Real Pagination */}
       <section className="max-w-7xl mx-auto px-6 py-20 bg-gradient-to-b from-black to-[#1a0033]">
         <div className="flex items-end justify-between mb-10">
