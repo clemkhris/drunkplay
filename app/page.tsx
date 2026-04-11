@@ -23,6 +23,20 @@ interface Game {
   image: string;
 }
 
+interface Cocktail {
+  id: number;
+  name: string;
+  category?: string;
+  main_alcohol: string;
+  materials: string[];
+  steps: string[];
+  taste: string;
+  strength: number;        // 1-10
+  difficulty?: string;
+  image?: string;
+  tips?: string;
+}
+
 const initialGames: Game[] = [
 ];
 const scenes = ["全部", "酒吧", "KTV", "家庭", "户外", "餐厅", "轰趴"];
@@ -30,6 +44,7 @@ const dimensionsList = ["认知推理", "情感表达", "动作反应", "运气"
 
 export default function Home() {
   const [games, setGames] = useState<Game[]>(initialGames);
+  const [cocktails, setCocktails] = useState<Cocktail[]>([]);
   const [currentSceneFilter, setCurrentSceneFilter] = useState("全部");
   const [currentDimensionFilters, setCurrentDimensionFilters] = useState<string[]>([]);
   const [showLogin, setShowLogin] = useState(false);
@@ -54,7 +69,16 @@ export default function Home() {
 
     if (data) setGames(data);
     if (count !== null) setGameCount(count);  // ← real number!
+
+    const { data: cocktailData, error: cocktailError } = await supabase
+      .from('cocktails')
+      .select('*')
+      .eq('status', 'approved');
+
+    if (cocktailError) console.error("Cocktails error:", cocktailError);
+    else setCocktails(cocktailData || []);
   };
+  
   fetchGames();
 }, []);
 
@@ -415,6 +439,91 @@ useEffect(() => {
         </div>
       </section>
 
+            {/* Cocktails Block - Under Games */}
+      <section className="max-w-7xl mx-auto px-6 py-20 bg-gradient-to-b from-black to-[#1a0033]">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <div className="text-[var(--neon-pink)] text-sm tracking-widest">TONIGHT'S POISON</div>
+            <h2 className="text-5xl font-bold [font-family:var(--font-orbitron)] flex items-center gap-3">
+              🍹 Drunk Cocktails <span className="text-3xl">🔥</span>
+            </h2>
+            <p className="text-gray-400 mt-2">Pick your poison. Shake it. Light it. Down it.</p>
+          </div>
+          
+          <button
+            onClick={() => {
+              if (cocktails.length === 0) {
+                alert("No cocktails loaded yet... go add some in Supabase first! 🍸");
+                return;
+              }
+              const rand = cocktails[Math.floor(Math.random() * cocktails.length)];
+              alert(`🍹 SHAKE RESULT: ${rand.name}!\n\nAlcohol: ${rand.main_alcohol}\nStrength: ${rand.strength}/10 🔥\nTaste: ${rand.taste}\n\nGo make this shit right now~`);
+            }}
+            className="px-8 py-4 bg-gradient-to-r from-[#FF00AA] to-[#00F0FF] rounded-3xl text-lg font-medium flex items-center gap-3 hover:scale-105 transition-all shadow-lg"
+          >
+            <i className="fa-solid fa-dice"></i> Shake Random Drink
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {cocktails.slice(0, 6).map((cocktail) => (
+            <div
+              key={cocktail.id}
+              className="neon-card bg-[#111] border border-white/10 rounded-3xl overflow-hidden cursor-pointer group"
+              onClick={() => alert(`🍹 ${cocktail.name}\n\nMain Alcohol: ${cocktail.main_alcohol}\nStrength: ${cocktail.strength}/10\nTaste: ${cocktail.taste}\n\nMaterials:\n${cocktail.materials.join('\n')}\n\nHow to make:\n${cocktail.steps.join('\n')}${cocktail.tips ? `\n\nTips: ${cocktail.tips}` : ''}`)}
+            >
+              <div className="h-56 bg-gradient-to-br from-[#FF00AA]/20 to-[#00F0FF]/20 relative overflow-hidden">
+                {cocktail.image ? (
+                  <img
+                    src={cocktail.image}
+                    alt={cocktail.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-9xl opacity-70">
+                    🍸
+                  </div>
+                )}
+                
+                {/* Strength badge */}
+                <div className="absolute top-4 right-4 bg-black/90 px-4 py-1 rounded-2xl text-sm font-bold border border-[#FF00AA]/70">
+                  {cocktail.strength}/10 🔥
+                </div>
+              </div>
+
+              <div className="p-6">
+                <h3 className="text-2xl font-medium mb-1">{cocktail.name}</h3>
+                <p className="text-sm text-gray-400 mb-4">
+                  {cocktail.main_alcohol} • {cocktail.category || "Classic"}
+                </p>
+                
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-300">
+                    {cocktail.taste}
+                  </div>
+                  <div className={`px-5 py-1 text-xs font-medium rounded-3xl ${
+                    cocktail.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-400' :
+                    cocktail.difficulty === 'Medium' ? 'bg-amber-500/20 text-amber-400' :
+                    'bg-rose-500/20 text-rose-400'
+                  }`}>
+                    {cocktail.difficulty || 'Easy'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-14">
+          <button 
+            onClick={() => alert("Full cocktail menu coming soon... We’re still mixing it up 🍹")}
+            className="px-12 py-4 border-2 border-[var(--neon-pink)] hover:bg-[var(--neon-pink)]/10 rounded-3xl text-lg transition-all"
+          >
+            Browse All Cocktails →
+          </button>
+        </div>
+      </section>
+
       {/* Info Section */}
       <section className="max-w-7xl mx-auto px-6 py-20 bg-gradient-to-r from-[#1a0033] to-black">
         <div className="text-center mb-12">
@@ -512,3 +621,4 @@ useEffect(() => {
     </div>
   );
 }
+
