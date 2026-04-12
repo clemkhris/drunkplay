@@ -52,6 +52,7 @@ export default function Home() {
   const [currentCat, setCurrentCat] = useState<1 | 2>(1);
   const [catSpeech, setCatSpeech] = useState("这个游戏的核心在于第五轮使用回忆法，最容易赢哦～");
   const [user, setUser] = useState<any>(null);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const router = useRouter();
   const [gameCount, setGameCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -327,12 +328,7 @@ useEffect(() => {
             <div
               key={game.id}
               className="neon-card min-w-[280px] bg-[#111] border border-white/10 rounded-3xl overflow-hidden snap-center cursor-pointer"
-              onClick={() => alert(`${game.title}\n
-            准备工具: ${game.tools}
-            前置条件: ${game.setup}
-            游戏描述: ${game.description}
-            输赢规则: ${game.winning_conditions}
-            游戏时长：${game.duration}`)}
+              onClick={() => setSelectedGame(game)}
             >
               <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl">
                 {game.image ? (
@@ -451,12 +447,7 @@ useEffect(() => {
             <div
               key={game.id}
               className="neon-card bg-[#111] border border-white/10 rounded-3xl overflow-hidden cursor-pointer"
-              onClick={() => alert(`🎉 进入 ${game.title}
-            准备工具: ${game.tools}
-            前置条件: ${game.setup}
-            游戏描述: ${game.description}
-            输赢规则: ${game.winning_conditions}
-            游戏时长：${game.duration}`)}
+              onClick={() => setSelectedGame(game)}
             >
               <div className="h-48 bg-gradient-to-br from-[#9D00FF]/20 to-[#00F0FF]/20 flex items-center justify-center text-8xl overflow-hidden">
                 {game.image ? (
@@ -717,6 +708,88 @@ useEffect(() => {
                 className="px-8 py-3 bg-[var(--neon-purple)] rounded-2xl flex items-center gap-2"
               >
                 <i className="fa-solid fa-volume-high"></i> 再听一次
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Game Detail Modal */}
+      {selectedGame && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[10000] flex items-center justify-center p-4"
+          onClick={() => setSelectedGame(null)}
+        >
+          <div 
+            className="bg-[#0F0F0F] border border-[var(--neon-cyan)]/50 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 头部图片 */}
+            <div className="h-64 relative">
+              {selectedGame.image ? (
+                <img 
+                  src={selectedGame.image} 
+                  alt={selectedGame.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-9xl">
+                  🎲
+                </div>
+              )}
+              <div className="absolute top-4 right-4 bg-black/80 px-5 py-1 rounded-2xl text-sm">
+                {selectedGame.scene} · {selectedGame.players}人
+              </div>
+            </div>
+
+            {/* 内容区 - 重点：这里要能滚动 */}
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-280px)]">
+              <h2 className="text-4xl font-bold mb-6 neon-text-cyan">{selectedGame.title}</h2>
+              
+              <div className="space-y-8 text-lg">
+                <div>
+                  <div className="text-[var(--neon-purple)] text-sm mb-2">游戏描述</div>
+                  <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+                    {selectedGame.description}
+                  </p>
+                </div>
+
+                <div>
+                  <div className="text-[var(--neon-purple)] text-sm mb-2">准备工具</div>
+                  <p className="text-gray-200">{selectedGame.tools}</p>
+                </div>
+
+                <div>
+                  <div className="text-[var(--neon-purple)] text-sm mb-2">前置条件</div>
+                  <p className="text-gray-200">{selectedGame.setup}</p>
+                </div>
+
+                <div>
+                  <div className="text-[var(--neon-purple)] text-sm mb-2">输赢规则</div>
+                  <p className="text-gray-200 whitespace-pre-wrap">{selectedGame.winning_conditions}</p>
+                </div>
+
+                <div className="pt-6 border-t border-white/10">
+                  <div className="flex justify-between text-sm">
+                    <span>时长：{selectedGame.duration}</span>
+                    <span>类型：{selectedGame.dimensions.join("、")}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 底部按钮 */}
+            <div className="p-6 border-t border-white/10 flex gap-4">
+              <button 
+                onClick={() => setSelectedGame(null)}
+                className="flex-1 py-4 bg-white/10 hover:bg-white/20 rounded-2xl transition"
+              >
+                关掉
+              </button>
+              <button 
+                onClick={() => alert("已复制到剪贴板～今晚玩这个！")}
+                className="flex-1 py-4 bg-gradient-to-r from-[#9D00FF] to-[#00F0FF] rounded-2xl font-medium"
+              >
+                复制给朋友一起玩
               </button>
             </div>
           </div>
