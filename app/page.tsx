@@ -454,7 +454,7 @@ useEffect(() => {
               onClick={() => alert(`🎉 进入 ${game.title}
             准备工具: ${game.tools}
             前置条件: ${game.setup}
-            游戏描述: `\n${game.description}`
+            游戏描述: ${game.description}
             输赢规则: ${game.winning_conditions}
             游戏时长：${game.duration}`)}
             >
