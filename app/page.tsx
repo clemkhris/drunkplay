@@ -57,7 +57,7 @@ export default function Home() {
   const router = useRouter();
   const [gameCount, setGameCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 8;
     // Game Pagination
   const [currentGamePage, setCurrentGamePage] = useState(1);
   const gamesPerPage = 8;
@@ -549,7 +549,7 @@ useEffect(() => {
         </div>
 
         {/* Cocktail Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {currentCocktails.map((cocktail) => (
             <div
               key={cocktail.id}
