@@ -45,6 +45,7 @@ const dimensionsList = ["认知推理", "情感表达", "动作反应", "运气"
 export default function Home() {
   const [games, setGames] = useState<Game[]>(initialGames);
   const [cocktails, setCocktails] = useState<Cocktail[]>([]);
+  const [selectedCocktail, setSelectedCocktail] = useState<Cocktail | null>(null);
   const [currentSceneFilter, setCurrentSceneFilter] = useState("全部");
   const [currentDimensionFilters, setCurrentDimensionFilters] = useState<string[]>([]);
   const [showLogin, setShowLogin] = useState(false);
@@ -539,7 +540,7 @@ useEffect(() => {
             onClick={() => {
               if (cocktails.length === 0) return alert("还没加载酒呢～");
               const rand = cocktails[Math.floor(Math.random() * cocktails.length)];
-              alert(`🍹 摇到了：${rand.name}！\n\nAlcohol: ${rand.main_alcohol}\nStrength: ${rand.strength}/10 🔥\nTaste: ${rand.taste}`);
+              setSelectedCocktail(rand);
             }}
             className="px-8 py-4 bg-gradient-to-r from-[#FF00AA] to-[#00F0FF] rounded-3xl text-lg font-medium flex items-center gap-3 hover:scale-105 transition-all"
           >
@@ -553,7 +554,7 @@ useEffect(() => {
             <div
               key={cocktail.id}
               className="neon-card bg-[#111] border border-white/10 rounded-3xl overflow-hidden cursor-pointer group"
-              onClick={() => alert(`🍹 ${cocktail.name}\n\nMain: ${cocktail.main_alcohol}\nStrength: ${cocktail.strength}/10\nTaste: ${cocktail.taste}\n\nMaterials:\n${cocktail.materials.join('\n')}\n\nSteps:\n${cocktail.steps.join('\n')}`)}
+              onClick={() => setSelectedCocktail(cocktail)}
             >
               <div className="h-56 bg-gradient-to-br from-[#FF00AA]/20 to-[#00F0FF]/20 relative overflow-hidden">
                 {cocktail.image ? (
@@ -792,6 +793,96 @@ useEffect(() => {
                 复制给朋友一起玩
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Cocktail Detail Modal - 修复版 */}
+      {selectedCocktail && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[10000] flex items-center justify-center p-4"
+          onClick={() => setSelectedCocktail(null)}
+        >
+          <div 
+            className="bg-[#0F0F0F] border border-[var(--neon-pink)]/60 rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 头部图片 + 强度标签 */}
+            <div className="relative h-64 flex-shrink-0">
+              {selectedCocktail.image ? (
+                <img 
+                  src={selectedCocktail.image} 
+                  alt={selectedCocktail.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-500 flex items-center justify-center text-9xl">
+                  🍹
+                </div>
+              )}
+              
+              <div className="absolute top-6 right-6 bg-black/90 px-6 py-2 rounded-3xl text-2xl font-bold border border-[#FF00AA] flex items-center gap-2">
+                {selectedCocktail.strength}/10 <span className="text-xl">🔥</span>
+              </div>
+            </div>
+
+            {/* 可滚动的内容区 */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-8">
+              <div>
+                <h2 className="text-5xl font-bold mb-2 neon-text-pink">{selectedCocktail.name}</h2>
+                <p className="text-[var(--neon-cyan)] text-xl">
+                  {selectedCocktail.main_alcohol} • {selectedCocktail.category || "Classic"}
+                </p>
+              </div>
+
+              {/* TASTE */}
+              <div>
+                <div className="text-[var(--neon-pink)] text-sm mb-3 tracking-widest">TASTE 味道</div>
+                <p className="text-gray-200 leading-relaxed text-lg">{selectedCocktail.taste}</p>
+              </div>
+
+              {/* MATERIALS */}
+              <div>
+                <div className="text-[var(--neon-pink)] text-sm mb-3 tracking-widest">MATERIALS 材料</div>
+                <ul className="space-y-2 text-gray-300">
+                  {selectedCocktail.materials.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="text-[var(--neon-cyan)] mt-1">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* HOW TO MAKE - 自动清理序号 */}
+              <div>
+                <div className="text-[var(--neon-pink)] text-sm mb-3 tracking-widest">HOW TO MAKE 做法</div>
+                <div className="space-y-4 text-gray-300">
+                  {selectedCocktail.steps.map((step, index) => {
+                    let cleanStep = step.trim()
+                      .replace(/^\d+\.\s*\d+\.\s*/, '')   // 清理 "1. 1. "
+                      .replace(/^\d+\.\s*/, '')           // 清理 "1. "
+                      .replace(/^\d+、\s*/, '');          // 清理 "1、"
+
+                    return (
+                      <div key={index} className="flex gap-4">
+                        <span className="text-[var(--neon-cyan)] font-mono shrink-0 mt-0.5">
+                          {index + 1}.
+                        </span>
+                        <span className="leading-relaxed">{cleanStep}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {selectedCocktail.tips && (
+                <div>
+                  <div className="text-[var(--neon-pink)] text-sm mb-3 tracking-widest">小贴士</div>
+                  <p className="text-gray-200 italic leading-relaxed">{selectedCocktail.tips}</p>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       )}
