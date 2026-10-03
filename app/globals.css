@@ -86,3 +86,5 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+:root { --font-orbitron: Arial, sans-serif; --font-inter: Arial, sans-serif; }

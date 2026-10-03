@@ -44,4 +44,11 @@ next-env.d.ts
 .env.local
 .env.*.local
 
-package-lock.json
+
+# Private database backups and generated imports
+*.backup*
+*.gz
+cloudbase/private/
+
+/img/
+/insert

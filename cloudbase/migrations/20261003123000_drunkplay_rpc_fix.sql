@@ -1,0 +1,63 @@
+CREATE OR REPLACE FUNCTION public.drunkplay_rpc(p_op text, p_body jsonb DEFAULT '{}') RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE u public.drunkplay_users; uid uuid; result jsonb; gid bigint; mid uuid;
+BEGIN
+ IF (nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'role') IS DISTINCT FROM 'service_role' THEN
+  RAISE EXCEPTION 'Service role required' USING ERRCODE='42501';
+ END IF;
+ IF p_op='health' THEN RETURN jsonb_build_object('status','ok','schema','drunkplay_v1'); END IF;
+ IF p_op='content' THEN
+  RETURN jsonb_build_object('games',COALESCE((SELECT jsonb_agg(to_jsonb(g)-'created_by' ORDER BY id) FROM public.drunkplay_games g WHERE status='approved'),'[]'::jsonb),
+   'cocktails',COALESCE((SELECT jsonb_agg(to_jsonb(c) ORDER BY id) FROM public.drunkplay_cocktails c WHERE status='approved'),'[]'::jsonb));
+ END IF;
+ IF p_op='credentials' THEN
+  SELECT * INTO u FROM public.drunkplay_users WHERE email=lower(p_body->>'email') AND NOT disabled;
+  IF NOT FOUND THEN RETURN null; END IF;
+  RETURN jsonb_build_object('id',u.id,'email',u.email,'username',u.username,'password_hash',u.password_hash);
+ END IF;
+ IF p_op='signup' THEN
+  INSERT INTO public.drunkplay_users(id,email,password_hash,username) VALUES((p_body->>'id')::uuid,lower(p_body->>'email'),p_body->>'password_hash',p_body->>'username');
+  RETURN 'true'::jsonb;
+ END IF;
+ IF p_op='session_create' THEN
+  INSERT INTO public.drunkplay_sessions VALUES(p_body->>'session_key',(p_body->>'user_id')::uuid,now()+interval '7 days'); RETURN 'true'::jsonb;
+ END IF;
+ IF p_op='logout' THEN DELETE FROM public.drunkplay_sessions WHERE session_key=p_body->>'session_key'; RETURN 'true'::jsonb; END IF;
+ IF p_op='media' THEN
+  SELECT jsonb_build_object('mime',mime,'data',data) INTO result FROM public.drunkplay_media WHERE id=(p_body->>'id')::uuid;
+  RETURN result;
+ END IF;
+ SELECT s.user_id INTO uid FROM public.drunkplay_sessions s JOIN public.drunkplay_users usr ON usr.id=s.user_id
+  WHERE s.session_key=p_body->>'session_key' AND s.expires_at>now() AND NOT usr.disabled;
+ IF p_op='user' THEN
+  IF uid IS NULL THEN RETURN null; END IF;
+  SELECT jsonb_build_object('id',id,'email',email,'user_metadata',jsonb_build_object('username',username)) INTO result FROM public.drunkplay_users WHERE id=uid;
+  RETURN result;
+ END IF;
+ IF uid IS NULL THEN RAISE EXCEPTION 'Login required' USING ERRCODE='42501'; END IF;
+ IF p_op='rating_read' THEN
+  SELECT COALESCE(jsonb_agg(jsonb_build_object('rating',rating)),'[]'::jsonb) INTO result FROM public.drunkplay_ratings WHERE game_id=(p_body->>'game_id')::bigint
+   AND (NOT COALESCE((p_body->>'own')::boolean,false) OR user_id=uid); RETURN result;
+ END IF;
+ IF p_op='rate' THEN
+  gid:=(p_body->>'game_id')::bigint;
+  IF NOT EXISTS(SELECT 1 FROM public.drunkplay_games WHERE id=gid AND status='approved') THEN RAISE EXCEPTION 'Game unavailable'; END IF;
+  INSERT INTO public.drunkplay_ratings(game_id,user_id,rating) VALUES(gid,uid,(p_body->>'rating')::smallint);
+  UPDATE public.drunkplay_games SET score=(SELECT avg(rating) FROM public.drunkplay_ratings WHERE game_id=gid),updated_at=now() WHERE id=gid;
+  RETURN jsonb_build_array(jsonb_build_object('rating',(p_body->>'rating')::smallint));
+ END IF;
+ IF p_op='upload' THEN
+  mid:=(p_body->>'id')::uuid;
+  INSERT INTO public.drunkplay_media(id,owner_id,mime,data) VALUES(mid,uid,p_body->>'mime',p_body->>'data');
+  RETURN jsonb_build_object('path','/drunkplay/api/media/'||mid::text);
+ END IF;
+ IF p_op='publish' THEN
+  IF p_body->>'image'<>'' AND NOT EXISTS(SELECT 1 FROM public.drunkplay_media WHERE owner_id=uid AND '/drunkplay/api/media/'||id::text=p_body->>'image') THEN RAISE EXCEPTION 'Invalid image'; END IF;
+  INSERT INTO public.drunkplay_games(title,description,scene,dimensions,players,created_by,image,duration,tools,setup,winning_conditions,video)
+   VALUES(p_body->>'title',p_body->>'description',p_body->>'scene',ARRAY(SELECT jsonb_array_elements_text(p_body->'dimensions')),p_body->>'players',uid,p_body->>'image',p_body->>'duration',p_body->>'tools',p_body->>'setup',p_body->>'winning_conditions','') RETURNING id INTO gid;
+  RETURN jsonb_build_array(jsonb_build_object('id',gid));
+ END IF;
+ RAISE EXCEPTION 'Unknown operation';
+END $$;
+REVOKE ALL ON FUNCTION public.drunkplay_rpc(text,jsonb) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.drunkplay_rpc(text,jsonb) TO service_role;

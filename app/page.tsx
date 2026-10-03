@@ -15,7 +15,7 @@ interface Game {
   tools: string;
   description: string;
   winning_conditions: string;
-  players: number;
+  players: string;
   video: string;
   scene: string;
   dimensions: string[];
@@ -52,7 +52,7 @@ export default function Home() {
   const [showCatModal, setShowCatModal] = useState(false);
   const [currentCat, setCurrentCat] = useState<1 | 2>(1);
   const [catSpeech, setCatSpeech] = useState("这个游戏的核心在于第五轮使用回忆法，最容易赢哦～");
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<import("@/lib/supabaseClient").AppUser | null>(null);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const router = useRouter();
   const [gameCount, setGameCount] = useState(0);
@@ -143,6 +143,12 @@ useEffect(() => {
     return sceneMatch && dimMatch;
   });
 
+  const shakeRecommend = () => {
+    if (!games.length) return;
+    const rand = games[Math.floor(Math.random() * games.length)];
+    alert(`🎲 摇到了：${rand.title}！\n\n场景：${rand.scene}\n类型：${rand.dimensions.join("、")}\n\n快去玩吧～`);
+  };
+
   useEffect(() => {
     // Keyboard shortcut: press R to shake
     const handleKey = (e: KeyboardEvent) => {
@@ -151,11 +157,6 @@ useEffect(() => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [games]);
-
-  const shakeRecommend = () => {
-    const rand = games[Math.floor(Math.random() * games.length)];
-    alert(`🎲 摇到了：${rand.title}！\n\n场景：${rand.scene}\n类型：${rand.dimensions.join("、")}\n\n快去玩吧～`);
-  };
 
   const toggleDimension = (dim: string) => {
     setCurrentDimensionFilters((prev) =>
@@ -217,7 +218,7 @@ useEffect(() => {
                   退出
                 </button>
                 <a
-                  href="/publish"
+                  href="/drunkplay/publish"
                   className="px-6 py-2 bg-gradient-to-r from-[#9D00FF] to-[#00F0FF] rounded-3xl text-sm font-medium"
                 >
                   发布游戏
@@ -420,7 +421,8 @@ useEffect(() => {
             <button
               onClick={() => {
                 if (games.length === 0) return alert("还没加载游戏呢～");
-                const rand = games[Math.floor(Math.random() * games.length)];
+                if (!games.length) return;
+    const rand = games[Math.floor(Math.random() * games.length)];
                 alert(`🎲 摇到了：${rand.title}！\n\n场景：${rand.scene}\n类型：${rand.dimensions.join("、")}\n\n快去玩吧～`);
               }}
               className="px-8 py-4 bg-gradient-to-r from-[var(--neon-purple)] to-[var(--neon-cyan)] rounded-3xl text-lg font-medium flex items-center gap-3 hover:scale-105 transition-all shadow-lg"
@@ -529,7 +531,7 @@ useEffect(() => {
       <section className="max-w-7xl mx-auto px-6 py-20 bg-gradient-to-b from-black to-[#1a0033]">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <div className="text-[var(--neon-pink)] text-sm tracking-widest">TONIGHT'S POISON</div>
+            <div className="text-[var(--neon-pink)] text-sm tracking-widest">TONIGHT&apos;S POISON</div>
             <h2 className="text-5xl font-bold [font-family:var(--font-orbitron)] flex items-center gap-3">
               🍹 Drunk Cocktails <span className="text-3xl">🔥</span>
             </h2>
@@ -858,7 +860,7 @@ useEffect(() => {
                 <div className="text-[var(--neon-pink)] text-sm mb-3 tracking-widest">HOW TO MAKE 做法</div>
                 <div className="space-y-4 text-gray-300">
                   {selectedCocktail.steps.map((step, index) => {
-                    let cleanStep = step.trim()
+                    const cleanStep = step.trim()
                       .replace(/^\d+\.\s*\d+\.\s*/, '')   // 清理 "1. 1. "
                       .replace(/^\d+\.\s*/, '')           // 清理 "1. "
                       .replace(/^\d+、\s*/, '');          // 清理 "1、"

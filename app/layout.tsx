@@ -1,20 +1,5 @@
 import type { Metadata } from "next";
-import { Orbitron, Inter } from "next/font/google";
 import "./globals.css";
-
-const orbitron = Orbitron({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-orbitron",
-  display: "swap",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "600"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "DrunkPlay • 酒中自有真理，游戏带来欢乐",
@@ -27,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${orbitron.variable} ${inter.variable}`}>
+    <html lang="zh-CN" >
       <body>{children}</body>
     </html>
   );

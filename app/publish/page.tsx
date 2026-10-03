@@ -27,6 +27,7 @@ export default function PublishGame() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setError('请先登录');
+      setLoading(false);
       return;
     }
 
@@ -36,17 +37,19 @@ export default function PublishGame() {
         .from('image')  // Make sure this bucket exists in Supabase Storage
         .upload(`${user.id}/${Date.now()}.png`, imageFile);
 
-      if (uploadError) {
-        setError(uploadError.message);
+      if (uploadError || !uploadData) {
+        setError(uploadError?.message || "图片上传失败");
+        setLoading(false);
         return;
       }
 
       const { data } = supabase.storage.from('image').getPublicUrl(uploadData.path);
       imageUrl = data.publicUrl;
     }
-alert('Debug: Image URL = ' + imageUrl);
+
     const { error: insertError } = await supabase.from('games').insert({
       title,
+      setup,
       tools,
       duration,
       description,

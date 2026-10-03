@@ -8,3 +8,7 @@ node_modules
 *.log
 *.tsbuildinfo
 cloudbase
+
+img
+insert
+CLAUDE.md

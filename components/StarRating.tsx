@@ -16,7 +16,7 @@ interface StarRatingProps {
 export default function StarRating({ gameId, initialRating = 0, onRate }: StarRatingProps) {
   const [hover, setHover] = useState(0);
   const [rating, setRating] = useState(0); // temp for hover preview
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<import("@/lib/supabaseClient").AppUser | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [userRating, setUserRating] = useState<number | null>(null); // what they voted (for display)
   
@@ -58,9 +58,7 @@ useEffect(() => {
         setHasVoted(true);
         setUserRating(data.rating);
         setRating(data.rating); // 顯示用戶自己投的星星
-        console.log(`已投過 ${data.rating} 星，鎖定星星～`);
       } else {
-        console.log("還沒投過，開放投票！");
       }
     } catch (err) {
       console.error("意外錯誤:", err);
@@ -76,14 +74,12 @@ useEffect(() => {
       return;
     }
 
-    console.log("当前用户:", currentUser);  // ← 加这行，看是不是 null
 
     if (!currentUser) {
       alert("先登录/注册才能评分哦～ 🍻");
       return;
     }
 
-    console.log("准备插入: game_id =", gameId, "user_id =", currentUser.id, "rating =", value);
 
     const { data, error } = await supabase
       .from('game_ratings')
@@ -95,12 +91,11 @@ useEffect(() => {
       .select();  // ← 加 .select() 方便看返回
 
     if (error) {
-      console.error("评分错误详情:", error);  // ← 超级重要！看这里
+      console.error("DRUNKPLAY_RATING_FAILED");  // ← 超级重要！看这里
       alert(`评分失败: ${error.message || "未知错误... 再摇一次？"}`);
       return;
     }
 
-    console.log("插入成功:", data);
 
 // ... insert 成功后
 
